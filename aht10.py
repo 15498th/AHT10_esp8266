@@ -13,10 +13,8 @@ class AHT10:
         self.address = address
         self.i2c.writeto(self.address, ResetCmd)
         self.raw_data = bytearray(6)
-        self.raw_temperature = 0
-        self.raw_humidity = 0
-        self.temperature = 0.0
-        self.humidity = 0.0
+        self.temperature = float()
+        self.humidity = float()
 
     def readStatus(self, from_buffer=False):
         if from_buffer:
