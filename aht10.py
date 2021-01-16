@@ -20,10 +20,9 @@ class AHT10:
 
     def readStatus(self, from_buffer=False):
         if from_buffer:
-            status = self.raw_data[0]
+            return self.raw_data[0]
         else:
-            status = self.i2c.readfrom(self.address, 1)[0]
-        return status
+            return self.i2c.readfrom(self.address, 1)[0]
 
     def initiateMeasurement(self):
         self.i2c.writeto(self.address, MeasureCmd)
