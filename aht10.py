@@ -1,5 +1,3 @@
-import time
-
 AHT10_I2CADDR = 56
 CalibrateCmd = b'\xE1\x08\x00'
 NormalCmd = b'\xA8\x00\x00'
@@ -38,9 +36,3 @@ class AHT10:
         raw_temperature = ((self.raw_data[3] & 0x0F) << 16) | (self.raw_data[4] << 8) | self.raw_data[5]
         self.temperature = ((200 * raw_temperature) / 1048576) - 50
 
-    @property
-    def values(self):
-        self.initiateMeasurement()
-        time.sleep_ms(100) 
-        self.readData()
-        return ("{:.2f}".format(self.temperature), "{:.2f}".format(self.humidity))
