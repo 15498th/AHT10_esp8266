@@ -1,12 +1,13 @@
-## AHT10_esp32
+## AHT10_esp8266
 Micropython library for AHT10 humidity and temperature sensor.
-Heavily based on [https://github.com/Thinary/AHT10](https://github.com/Thinary/AHT10).
+Adapted from [https://github.com/15498th/AHT10_esp32](https://github.com/15498th/AHT10_esp32) to use less memory by cost of changing interface and ommiting some methods.
+I2C initialization is performed by calling code, so module should work on esp32 as well.
 
 
 ## Usage
 
 Measurement is triggered by calling `initiateMeasurement()`. It takes some time to complete the measurement, so data shouldn't be read from sensor memory before it is updated, otherwise it could be left in inconsistent state or contain values from previous reading. See status evaluation section below.
-The sensor memory consists of 6 bytes. First byte is used for status bits and others are devided between temperature and humidity values. Sensor memory is read to internal buffer with `readRawData()` method and then converted to actual temperature and humidity values with `convertTemperature()` and `convertHumidity()` methods. 
+The sensor memory consists of 6 bytes. First byte is used for status bits and others are devided between temperature and humidity values. Sensor memory is read to internal buffer and converted to actual temperature and humidity values with `readData()` method. Converted values are stored in `AHT10.temperature` and `AHT10.humidity` fields.
 
 
 ```python
@@ -14,8 +15,8 @@ import time
 from machine import I2C
 import aht10.py
 
-# Create i2c bus object, pins here are hardware i2c pins for ESP32
-i2c = I2C(0, sda=Pin(21), scl=Pin(22))
+# Create i2c bus object, pins here are hardware i2c pins for ESP8266
+i2c = I2C(sda=Pin(4), scl=Pin(5))
 
 # Create sensor object. Default address argument is 56 and can be ommited
 sensor = aht10.AHT10(i2c=i2c, address=56)
@@ -27,48 +28,30 @@ sensor.initiateMeasurement()
 time.sleep_ms(100)
 
 # Read data from sensor memory to internal buffer
-sensor.readRawData()
+sensor.readData()
 
-# Convert data from internal buffer to human readable format
-# returns float
-temperature = sensor.convertTemperature()
-humidity = sensor.convertHumidity()
-```
-
-Reading property `values` combines all above:
-
-```python
-from machine import I2C
-import aht10.py
-
-i2c = I2C(0, sda=Pin(21), scl=Pin(22))
-sensor = aht10.AHT10(i2c=i2c)
-
-# returns str
-humidity, temperature = sensor.values
+# Print measured data:
+print('temperature:', sensor.temperature, ', humidity: ', sensor.humidity)
 ```
 
 ## Status evaluation
 
+After `initiateMeasurement()` is called, sensor needs some time to complete conversion. Reading data before that in most cases would get values from previous measurement, but can result in something else, like returning unrealistic values right after initialization.
+
 Status byte is used to determine current state of device.
 
+To get actual value of status byte without reading whole device memory `readStatus()` is used. When conversion is completed, seventh bit of status is set to `1`.
 
-`statusBusy()` used to check if last measurement is done and data can be read. After `initiateMeasurement()` is called, sensor needs some time to complete conversion. Before that `statusBusy()` will return `true`. Reading data in busy state in most cases would get values from previous measurement, but can result in something else, like returning unrealistic values after `reset()`.
 
 ```python
 sensor.initiateMeasurement()
-while(sensor.statusBusy()):
+while(not sensor.readStatus() & (1<<7)):
     time.sleep_ms(10)
 sensor.readRawData()
 ```
 
+Consult sensor manual for meaning of other bits.
+
 Minimum recommended reading rate of this sensor is once in two seconds, so in general case it's better to just wait until device has enough time to complete measurement instead of actively monitoring busy state.
-
-
-Calibration coefficient is loaded with `calibrate()` and checked with `statusCalibrated()` method.
-
-```python
-if not sensor.statusCalibrated():
-    sensor.calibrate()
-```
+Performing measurement at faster rate might cause sensor to self-heat, which adds about 1°C positive error to temperature value.
 
