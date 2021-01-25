@@ -52,6 +52,6 @@ sensor.readRawData()
 
 Consult sensor manual for meaning of other bits.
 
-Minimum recommended reading rate of this sensor is once in two seconds, so in general case it's better to just wait until device has enough time to complete measurement instead of actively monitoring busy state.
-Performing measurement at faster rate might cause sensor to self-heat, which adds about 1°C positive error to temperature value.
+Minimum recommended reading rate of this sensor is once in two seconds, so in general case it's better to just wait until device had enough time to complete measurement instead of actively monitoring busy state.
+Performing measurement at faster rate might cause sensor to self-heat, which adds error to measurement.
 
