@@ -1,14 +1,13 @@
 ## AHT10_esp8266
 Micropython library for AHT10 humidity and temperature sensor.
-Adapted from [https://github.com/15498th/AHT10_esp32](https://github.com/15498th/AHT10_esp32) to use less memory by cost of changing interface and ommiting some methods.
-I2C initialization is performed by calling code, so module should work on esp32 as well.
+Adapted from [https://github.com/15498th/AHT10_esp32](https://github.com/15498th/AHT10_esp32) to use less memory by ommiting some methods and changing interface.
 
 
 ## Usage
 
-Measurement is triggered by calling `initiateMeasurement()`. It takes some time to complete the measurement, so data shouldn't be read from sensor memory before it is updated, otherwise it could be left in inconsistent state or contain values from previous reading. See status evaluation section below.
-The sensor memory consists of 6 bytes. First byte is used for status bits and others are devided between temperature and humidity values. Sensor memory is read to internal buffer and converted to actual temperature and humidity values with `readData()` method. Converted values are stored in `AHT10.temperature` and `AHT10.humidity` fields.
+Measurement is triggered by calling `initiateMeasurement()`. It takes some time to complete the measurement, so data shouldn't be read from device before it is updated, otherwise it could be left in inconsistent state or contain values from previous reading. See status evaluation section below.
 
+The devive memory consists of 6 bytes. First byte is used for status bits and the rest devided between temperature and humidity values. Sensor memory is read to internal buffer and converted to actual temperature and humidity values with `readData()` method. Converted values are stored in `AHT10.temperature` and `AHT10.humidity` fields.
 
 ```python
 import time
@@ -27,7 +26,7 @@ sensor.initiateMeasurement()
 # Wait for sensor to complete measurement. It takes about 75 ms according to manual
 time.sleep_ms(100)
 
-# Read data from sensor memory to internal buffer
+# Read data from device memory to internal buffer
 sensor.readData()
 
 # Print measured data:
@@ -43,7 +42,6 @@ Status byte is used to determine current state of device.
 
 To get actual value of status byte without reading whole device memory `readStatus()` is used. When conversion is completed, seventh bit of status is set to `1`.
 
-
 ```python
 sensor.initiateMeasurement()
 while(sensor.readStatus() & (1<<7)):
@@ -53,6 +51,5 @@ sensor.readRawData()
 
 Consult sensor manual for meaning of other bits.
 
-Minimum recommended reading rate of this sensor is once in two seconds, so in general case it's better to just wait until device had enough time to complete measurement instead of actively monitoring busy state.
-Performing measurement at faster rate might cause sensor to self-heat, which adds error to measurement.
-
+Minimum recommended reading rate of this sensor is once in two seconds, so in typical application it's better to just wait until device had enough time to complete measurement instead of actively monitoring busy state.
+Performing measurements at faster rate might cause sensor to self-heat, which adds error to measurement result.
