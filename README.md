@@ -31,7 +31,8 @@ time.sleep_ms(100)
 sensor.readData()
 
 # Print measured data:
-print('temperature:', sensor.temperature, ', humidity: ', sensor.humidity)
+template = 'temperature: {:.2f}, humidity: {:.2f}'
+print(template.format(sensor.temperature, sensor.humidity))
 ```
 
 ## Status evaluation
@@ -45,7 +46,7 @@ To get actual value of status byte without reading whole device memory `readStat
 
 ```python
 sensor.initiateMeasurement()
-while(not sensor.readStatus() & (1<<7)):
+while(sensor.readStatus() & (1<<7)):
     time.sleep_ms(10)
 sensor.readRawData()
 ```
